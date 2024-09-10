@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"expenze-io.com/config"
 	"expenze-io.com/routes"
 	"github.com/gin-gonic/gin"
 )
@@ -11,7 +12,9 @@ import (
 func main() {
 	server := gin.Default()
 
-  routes.RegisterRoutes(server)
+	config.InitDB()
+
+	routes.RegisterRoutes(server)
 
 	server.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -23,7 +26,7 @@ func main() {
 	err := server.Run(":8080")
 
 	if err != nil {
-		log.Fatal("Failed to run server", err)
+		log.Panic("failed to run server")
 	}
 
 }
