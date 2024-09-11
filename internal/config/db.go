@@ -15,9 +15,7 @@ var DB *sql.DB
 func InitDB() {
 	var err error
 
-  connStr := os.Getenv("PG_CONNSTR")
-
-  log.Printf("connStr: %v", connStr)
+	connStr := os.Getenv("PG_CONNSTR")
 
 	DB, err = sql.Open("postgres", connStr)
 
