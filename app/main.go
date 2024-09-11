@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"expenze-io.com/internal/config"
+  "expenze-io.com/internal/config"
 	"expenze-io.com/routes"
 	"github.com/gin-gonic/gin"
 )

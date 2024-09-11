@@ -6,8 +6,9 @@ import (
 	"log"
 	"os"
 
-	"expenze-io.com/internal/tables"
-	_ "github.com/lib/pq"
+	"expenze-io.com/internal/repositories"
+	"expenze-io.com/internal/services"
+  _ "github.com/lib/pq"
 )
 
 var DB *sql.DB
@@ -26,7 +27,18 @@ func InitDB() {
 	DB.SetMaxOpenConns(10)
 	DB.SetMaxIdleConns(5)
 
-	tables.CreateTables(DB)
+	// Initailzing repositories
+	userRepo := repositories.NewUserRepository(DB)
+	otpRepo := repositories.NewOtpRespository(DB)
+
+	// Initailzing services
+	dbServices := services.NewDatabaseService(*userRepo, *otpRepo)
+
+	err = dbServices.SetupDatabase()
+
+	if err != nil {
+		log.Fatalf("Error setting up database: %v", err)
+	}
 
 	fmt.Println("Database is up and running")
 }
