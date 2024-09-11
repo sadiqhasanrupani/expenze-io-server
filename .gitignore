@@ -1,4 +1,7 @@
 .git
 .env
+.air.toml
 
 go.sum
+
+/tmp

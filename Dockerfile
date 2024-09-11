@@ -9,4 +9,4 @@ RUN go mod tidy
 
 EXPOSE 8080
 
-CMD ["go", "run", "main.go"]
+CMD ["go", "run", "./app/main.go"]
