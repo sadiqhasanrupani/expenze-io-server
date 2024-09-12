@@ -3,22 +3,16 @@ package controllers
 import (
 	"net/http"
 
-	"expenze-io.com/lib"
+	"expenze-io.com/internal/validators"
+	"expenze-io.com/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
 
-type RegistrationBody struct {
-	Firstname string `binding:"required" json:"firstname"`
-	Lastname  string `binding:"required" json:"lastname"`
-	EmailID   string `binding:"required" json:"emailId"`
-	Password  string `binding:"required" json:"password"`
-}
-
 var validate = validator.New()
 
 func RegisterHandler(r *gin.Context) {
-	var userReq RegistrationBody
+	var userReq validators.RegistrationBody
 
 	// Bind and validate incoming request
 	err := r.ShouldBindJSON(&userReq)
@@ -28,7 +22,7 @@ func RegisterHandler(r *gin.Context) {
 	}
 
 	// password validation
-	validatePassErr := lib.ValidatePassword(userReq.Password)
+	validatePassErr := pkg.ValidatePassword(userReq.Password)
 
 	if validatePassErr != nil {
 		r.JSON(http.StatusBadGateway, gin.H{
@@ -39,7 +33,7 @@ func RegisterHandler(r *gin.Context) {
 	}
 
 	// email validation
-	if validateEmailErr := lib.ValidateEmail(userReq.EmailID); validateEmailErr != nil {
+	if validateEmailErr := pkg.ValidateEmail(userReq.EmailID); validateEmailErr != nil {
 		r.JSON(http.StatusBadGateway, gin.H{
 			"error": validateEmailErr,
 		})
@@ -48,8 +42,8 @@ func RegisterHandler(r *gin.Context) {
 	}
 
 	// min firstname
-	validateFirstname := lib.MinMaxValidation(lib.MinMaxValidationFields{
-		Min:        lib.IntPtr(4),
+	validateFirstname := pkg.MinMaxValidation(pkg.MinMaxValidationFields{
+		Min:        pkg.IntPtr(4),
 		FieldName:  "firstname",
 		FieldValue: userReq.Firstname,
 	})
@@ -59,8 +53,8 @@ func RegisterHandler(r *gin.Context) {
 	}
 
 	// min firstname
-	validateLastName := lib.MinMaxValidation(lib.MinMaxValidationFields{
-		Min:        lib.IntPtr(3),
+	validateLastName := pkg.MinMaxValidation(pkg.MinMaxValidationFields{
+		Min:        pkg.IntPtr(3),
 		FieldName:  "lastname",
 		FieldValue: userReq.Lastname,
 	})

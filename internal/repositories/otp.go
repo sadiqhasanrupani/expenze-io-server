@@ -1,10 +1,10 @@
 package repositories
 
 import (
-	"database/sql"
-	"log"
+  "database/sql"
+  "log"
 
-	"expenze-io.com/lib"
+	"expenze-io.com/pkg"
 )
 
 type OtpRepository struct {
@@ -17,7 +17,7 @@ func NewOtpRespository(db *sql.DB) *OtpRepository {
 
 // method
 func (repo *OtpRepository) CreateOtpTable() error {
-	createOtpQuery := lib.CreateTableQuery("otp", `
+	createOtpQuery := pkg.CreateTableQuery("otps", `
     id SERIAL PRIMARY KEY NOT NULL,
     otp_number INTEGER UNIQUE NOT NULL,
   `)

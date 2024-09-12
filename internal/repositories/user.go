@@ -4,7 +4,8 @@ import (
 	"database/sql"
 	"log"
 
-	"expenze-io.com/lib"
+	"expenze-io.com/internal/models"
+	"expenze-io.com/pkg"
 )
 
 type UserRepository struct {
@@ -15,9 +16,9 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-// method
+// create table method
 func (repo *UserRepository) CreateUserTable() error {
-	createTableQuery := lib.CreateTableQuery("users",
+	createTableQuery := pkg.CreateTableQuery("users",
 		` id SERIAL PRIMARY KEY NOT NULL,
       first_name VARCHAR(100) NOT NULL,
       last_name VARCHAR(100) NOT NULL,
@@ -35,4 +36,23 @@ func (repo *UserRepository) CreateUserTable() error {
 
 	log.Println("Users table created successfully.")
 	return nil
+}
+
+// FindByEmail searches for a user by email
+func (repo *UserRepository) FindByEmail(email string) (*models.User, error) {
+	var user models.User // Variable to hold the user
+
+	// SQL query
+	query := "SELECT id, CONCAT(first_name, ' ', last_name) AS full_name, email_id, password FROM users WHERE email_id = $1"
+
+	// Execute query and get the row
+	row := repo.db.QueryRow(query, email)
+
+	// Scan the row into the user struct
+	err := row.Scan(&user.ID, &user.FullName, &user.EmailId, &user.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }
