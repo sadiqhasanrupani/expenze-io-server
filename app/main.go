@@ -3,15 +3,14 @@ package main
 import (
 	"log"
 
-  "expenze-io.com/internal/config"
-	"expenze-io.com/routes"
+	"expenze-io.com/internal/config"
+	"expenze-io.com/internal/routes"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	// loading configs
 	config.LoadConfigs()
-
 	// define our server engine
 	server := gin.Default()
 

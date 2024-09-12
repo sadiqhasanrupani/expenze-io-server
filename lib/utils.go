@@ -1,6 +1,8 @@
 package lib
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func CreateTableQuery(tableName, tableDefinition string) string {
 	return fmt.Sprintf(`
