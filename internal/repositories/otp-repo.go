@@ -1,8 +1,8 @@
 package repositories
 
 import (
-  "database/sql"
-  "log"
+	"database/sql"
+	"log"
 
 	"expenze-io.com/pkg"
 )
@@ -29,6 +29,5 @@ func (repo *OtpRepository) CreateOtpTable() error {
 		return err
 	}
 
-	log.Println("OTP table created successfully")
 	return nil
 }

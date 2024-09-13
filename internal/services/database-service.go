@@ -3,27 +3,34 @@ package services
 import "expenze-io.com/internal/repositories"
 
 type DatabaseService struct {
-	userRepo *repositories.UserRepository
-	otpRepo  *repositories.OtpRepository
+	UserRepo    *repositories.UserRepository
+	OtpRepo     *repositories.OtpRepository
+	CountryRepo *repositories.CountryRepo
 }
 
-func NewDatabaseService(userRepo repositories.UserRepository, otpRepo repositories.OtpRepository) *DatabaseService {
+func NewDatabaseService(props DatabaseService) *DatabaseService {
 	return &DatabaseService{
-		userRepo: &userRepo,
-		otpRepo:  &otpRepo,
+		UserRepo:    props.UserRepo,
+		OtpRepo:     props.OtpRepo,
+		CountryRepo: props.CountryRepo,
 	}
 }
 
 func (svc *DatabaseService) SetupDatabase() error {
-	err := svc.userRepo.CreateUserTable()
 
-	if err != nil {
+	if err := svc.CountryRepo.CreateCountryTable(); err != nil {
 		return err
 	}
 
-	err = svc.otpRepo.CreateOtpTable()
+	if err := svc.UserRepo.CreateUserTable(); err != nil {
+		return err
+	}
 
-	if err != nil {
+	if err := svc.OtpRepo.CreateOtpTable(); err != nil {
+		return err
+	}
+
+	if err := svc.CountryRepo.InsertCountries(); err != nil {
 		return err
 	}
 

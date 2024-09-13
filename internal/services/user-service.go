@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"errors"
 
+	"expenze-io.com/internal/body"
 	"expenze-io.com/internal/models"
 	"expenze-io.com/internal/repositories"
-	"expenze-io.com/internal/validators"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -20,7 +20,7 @@ func NewUserService(db *sql.DB) *UserService {
 	}
 }
 
-func (s *UserService) RegisterUser(req *validators.RegistrationBody) error {
+func (s *UserService) RegisterUser(req *body.RegistrationBody) error {
 	existingUser, _ := s.repo.FindByEmail(req.EmailID)
 
 	if existingUser != nil {
@@ -40,12 +40,26 @@ func (s *UserService) RegisterUser(req *validators.RegistrationBody) error {
 		Password:     string(hashedPassword),
 		EmailId:      req.EmailID,
 		MobileNumber: req.MobilieNumber,
+		PhoneCode:    req.PhoneCode,
+		Validity:     false,
 	}
 
 	// Save the user in the database
-  if err := s.repo.Save(newUser); err != nil {
-    return err
-  }
-    
-  return nil
+	if err := s.repo.Save(newUser); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *UserService) SendOtpMsg(body *body.RegistrationBody) (string, error) {
+	existingUser, _ := s.repo.FindByEmail(body.EmailID)
+
+	if existingUser == nil {
+		return "", errors.New("user not found which is related to this email")
+	}
+
+	maskedNumber := MaskPhoneNumber(existingUser.MobileNumber)
+
+	return "We have send you a otp on your whatsapp mobile number which last four digit is " + maskedNumber, nil
 }

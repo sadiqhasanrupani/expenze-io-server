@@ -9,7 +9,9 @@ type User struct {
 	LastName     string    `json:"last_name"`
 	EmailId      string    `json:"email_id"`
 	MobileNumber string    `json:"mobile_number"`
+	PhoneCode    string    `json:"phonecode"`
 	Password     string    `json:"password"`
+	Validity     bool      `json:"validity"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdateAt     time.Time `json:"updated_at"`
 }

@@ -8,7 +8,7 @@ import (
 
 	"expenze-io.com/internal/repositories"
 	"expenze-io.com/internal/services"
-  _ "github.com/lib/pq"
+	_ "github.com/lib/pq"
 )
 
 var DB *sql.DB
@@ -27,12 +27,17 @@ func InitDB() {
 	DB.SetMaxOpenConns(10)
 	DB.SetMaxIdleConns(5)
 
-	// Initailzing repositories
+	// Initializing repositories
 	userRepo := repositories.NewUserRepository(DB)
 	otpRepo := repositories.NewOtpRespository(DB)
+	countryRepo := repositories.NewCountryRespository(DB)
 
-	// Initailzing services
-	dbServices := services.NewDatabaseService(*userRepo, *otpRepo)
+	// Initializing services
+	dbServices := services.NewDatabaseService(services.DatabaseService{
+		UserRepo:    userRepo,
+		OtpRepo:     otpRepo,
+		CountryRepo: countryRepo,
+	})
 
 	err = dbServices.SetupDatabase()
 

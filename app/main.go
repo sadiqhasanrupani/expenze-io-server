@@ -11,6 +11,7 @@ import (
 func main() {
 	// loading configs
 	config.LoadConfigs()
+
 	// define our server engine
 	server := gin.Default()
 
