@@ -50,6 +50,11 @@ func (repo *UserRepository) FindByEmail(email string) (*models.User, error) {
 
 	// Scan the row into the user struct
 	err := row.Scan(&user.ID, &user.FullName, &user.EmailId, &user.Password)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
 	if err != nil {
 		return nil, err
 	}

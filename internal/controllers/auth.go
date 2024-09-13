@@ -3,6 +3,8 @@ package controllers
 import (
 	"net/http"
 
+	"expenze-io.com/internal/config"
+	"expenze-io.com/internal/services"
 	"expenze-io.com/internal/validators"
 	"expenze-io.com/pkg"
 	"github.com/gin-gonic/gin"
@@ -52,7 +54,7 @@ func RegisterHandler(r *gin.Context) {
 		r.JSON(http.StatusBadRequest, gin.H{"error": validateFirstname})
 	}
 
-	// min firstname
+	// min lastname
 	validateLastName := pkg.MinMaxValidation(pkg.MinMaxValidationFields{
 		Min:        pkg.IntPtr(3),
 		FieldName:  "lastname",
@@ -64,10 +66,13 @@ func RegisterHandler(r *gin.Context) {
 	}
 
 	// Call service to register user
-	// if err := userService.RegisterUser(&userReq); err != nil {
-	// 	r.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	// 	return
-	// }
+
+  userService := services.NewUserService(config.DB)
+	err = userService.RegisterUser(&userReq)
+
+	if err != nil {
+		r.JSON(http.StatusMethodNotAllowed, gin.H{"message": "Not Allowed", "error": err.Error()})
+	}
 
 	r.JSON(http.StatusOK, gin.H{
 		"message": "Registration done successfully",
