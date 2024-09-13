@@ -22,6 +22,7 @@ func (repo *UserRepository) CreateUserTable() error {
 		` id SERIAL PRIMARY KEY NOT NULL,
       first_name VARCHAR(100) NOT NULL,
       last_name VARCHAR(100) NOT NULL,
+      mobile_number VARCHAR(50) NOT NULL,
       email_id VARCHAR(150) UNIQUE NOT NULL,
       password VARCHAR(255) NOT NULL,
     `,
@@ -60,4 +61,23 @@ func (repo *UserRepository) FindByEmail(email string) (*models.User, error) {
 	}
 
 	return &user, nil
+}
+
+// Save User
+func (repo *UserRepository) Save(user *models.User) error {
+	query := `INSERT INTO users (
+    first_name,
+    last_name,
+    email_id,
+    mobile_number,
+    password
+  ) VALUES ($1, $2, $3, $4, $5)`
+
+	_, err := repo.db.Exec(query, user.FirstName, user.LastName, user.EmailId, user.MobileNumber, user.Password)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

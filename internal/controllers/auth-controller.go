@@ -8,10 +8,7 @@ import (
 	"expenze-io.com/internal/validators"
 	"expenze-io.com/pkg"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
-
-var validate = validator.New()
 
 func RegisterHandler(r *gin.Context) {
 	var userReq validators.RegistrationBody
@@ -66,12 +63,11 @@ func RegisterHandler(r *gin.Context) {
 	}
 
 	// Call service to register user
-
   userService := services.NewUserService(config.DB)
 	err = userService.RegisterUser(&userReq)
 
 	if err != nil {
-		r.JSON(http.StatusMethodNotAllowed, gin.H{"message": "Not Allowed", "error": err.Error()})
+		r.JSON(http.StatusMethodNotAllowed, gin.H{"message": "Not allowed", "error": err.Error()})
 	}
 
 	r.JSON(http.StatusOK, gin.H{
