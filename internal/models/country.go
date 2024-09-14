@@ -9,7 +9,7 @@ type Country struct {
 	Nicename  string    `json:"nicename"`
 	Iso3      string    `json:"iso3"`
 	Numcode   int       `json:"numcode"`
-	PhoneCode int       `json:"phonecode"`
+	PhoneCode []string  `json:"phonecode"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

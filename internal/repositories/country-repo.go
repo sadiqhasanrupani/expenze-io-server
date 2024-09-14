@@ -2,8 +2,10 @@ package repositories
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 
+	"expenze-io.com/internal/models"
 	"github.com/biter777/countries"
 	"github.com/lib/pq"
 )
@@ -91,4 +93,29 @@ func (repo *CountryRepo) InsertCountries() error {
 
 	log.Println("Successfully inserted all countries.")
 	return nil
+}
+
+func (repo *CountryRepo) FindByPhoneCode(phonecode string) (*models.Country, error) {
+	var country models.Country
+
+	query := `
+  SELECT id, name, iso, phonecode
+  FROM countries
+  WHERE $1 = ANY(phonecode)
+  `
+
+	row := repo.db.QueryRow(query, phonecode)
+
+	err := row.Scan(&country.ID, &country.Name, &country.Iso, pq.Array(&country.PhoneCode))
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("No rows are present related to the current phonecode")
+		}
+
+		return nil, err
+	}
+
+	return &country, nil
+
 }

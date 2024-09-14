@@ -67,6 +67,28 @@ func (repo *UserRepository) FindByEmail(email string) (*models.User, error) {
 	return &user, nil
 }
 
+func (repo *UserRepository) FindByMobileNum(phonenumber string) (*models.MobileUser, error) {
+	var user models.MobileUser // Variable to hold the user
+
+	// SQL query
+	query := `SELECT id from users WHERE mobile_number = $1`
+	// Execute query and get the row
+	row := repo.db.QueryRow(query, phonenumber)
+
+	// Scan the row into the user struct
+	err := row.Scan(&user.ID)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 // Save User
 func (repo *UserRepository) Save(user *models.User) error {
 	query := `INSERT INTO users (
@@ -75,10 +97,11 @@ func (repo *UserRepository) Save(user *models.User) error {
     email_id,
     mobile_number,
     password,
+    country_id,
     validity
-  ) VALUES ($1, $2, $3, $4, $5, $6)`
+  ) VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
-	_, err := repo.db.Exec(query, user.FirstName, user.LastName, user.EmailId, user.MobileNumber, user.Password, user.Validity)
+	_, err := repo.db.Exec(query, user.FirstName, user.LastName, user.EmailId, user.MobileNumber, user.Password, user.CountryId, user.Validity)
 
 	if err != nil {
 		return err
