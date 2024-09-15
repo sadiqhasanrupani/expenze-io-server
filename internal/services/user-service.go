@@ -3,6 +3,8 @@ package services
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"os"
 
 	"expenze-io.com/internal/body"
 	"expenze-io.com/internal/models"
@@ -73,13 +75,39 @@ func (s *UserService) RegisterUser(req *body.RegistrationBody) error {
 }
 
 func (s *UserService) SendOtpMsg(body *body.RegistrationBody) (string, error) {
-	existingUser, _ := s.repo.userRepo.FindByEmail(body.EmailID)
 
-	if existingUser == nil {
-		return "", errors.New("user not found which is related to this email")
+	connStr := os.Getenv("PG_CONNSTR")
+
+	waService, err := NewWhatsAppService(connStr)
+	if err != nil {
+		return "", err
 	}
 
-	maskedNumber := MaskPhoneNumber(existingUser.MobileNumber)
+	phoneNumber := fmt.Sprintf("%s%s", body.PhoneCode, body.MobilieNumber)
+	companyName := os.Getenv("COMPANY_NAME")
+	companyEmail := os.Getenv("COMPANY_EMAIL")
+	otpService := NewOTPService(6)
+	sixDigitOtp, err := otpService.GenerateOTP()
+	if err != nil {
+		return "", nil
+	}
 
-	return "We have send you a otp on your whatsapp mobile number which last four digit is " + maskedNumber, nil
+	message := fmt.Sprintf(`Dear %s %s,
+
+Your OTP for completing the verification is *%v*. Please use this code within the next 10 minutes to proceed.
+
+For your security, do not share this OTP with anyone.
+
+Thank you,
+%v
+%v`, body.Firstname, body.Lastname, sixDigitOtp, companyName, companyEmail)
+
+	if err := waService.SendMessage(phoneNumber, message); err != nil {
+		return "", err
+	}
+
+	maskedNumber := MaskPhoneNumber(body.MobilieNumber)
+	maskedPhoneNum := fmt.Sprintf("+%s-%s", body.PhoneCode, maskedNumber)
+
+	return fmt.Sprintf("We have send you a otp on your whatsapp mobile number which last four digit is %s", maskedPhoneNum), nil
 }

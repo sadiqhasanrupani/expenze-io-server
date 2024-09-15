@@ -16,16 +16,8 @@ func NewWhatsAppHandler(service *services.WhatsAppService) *WhatsAppHandler {
 }
 
 func (h *WhatsAppHandler) SendMessageHandler(ctx *gin.Context) {
-	// phoneNumber := r.URL.Query().Get("phone")
-	// message := r.URL.Query().Get("message")
-	//
-	// err := h.Service.SendMessage(phoneNumber, message)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
 
-  ctx.JSON(http.StatusOK, gin.H{"message": "Message from Whatsapp"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Message from Whatsapp"})
 }
 
 func RegisterRoutes(router *gin.Engine) {
