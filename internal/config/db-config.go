@@ -16,9 +16,9 @@ var DB *sql.DB
 func InitDB() {
 	var err error
 
-	connStr := os.Getenv("PG_CONNSTR")
+	ConnStr := os.Getenv("PG_CONNSTR")
 
-	DB, err = sql.Open("postgres", connStr)
+	DB, err = sql.Open("postgres", ConnStr)
 
 	if err != nil {
 		log.Panic("Something went wrong in database: ", err)
