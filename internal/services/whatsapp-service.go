@@ -100,22 +100,15 @@ func (s *WhatsAppService) SendOtpButtonMessage(phoneNumber, title, content, foot
 		},
 	}
 
-	// Build the message
-	// _ = &waProto.Message{
-	// 	TemplateMessage: &waProto.TemplateMessage{
-	// 		HydratedTemplate: hydratedTemplate,
-	// 	},
-	// }
-
 	templateMessage := &waE2E.TemplateMessage{
 		HydratedTemplate: hydratedTemplate,
 		TemplateID:       proto.String("4194019344155670"),
 	}
 
 	deviceListMetaData := &waE2E.DeviceListMetadata{
-		RecipientKeyHash:    []byte{}, // []byte{0xba, 0x35, 0xc5, 0x4d, 0xb1, 0x01, 0x3c, 0x62, 0xef, 0x44}
+		RecipientKeyHash:    []byte{},
 		RecipientTimestamp:  &timestamp,
-		RecipientKeyIndexes: []uint32{}, // []uint32{0, 15, 2}
+		RecipientKeyIndexes: []uint32{},
 	}
 
 	messageContextinfo := &waE2E.MessageContextInfo{

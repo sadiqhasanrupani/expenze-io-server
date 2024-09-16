@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
+	"time"
 
 	"expenze-io.com/internal/body"
 	"expenze-io.com/internal/models"
@@ -15,6 +17,7 @@ import (
 type userServiceRepo struct {
 	userRepo    repositories.UserRepository
 	countryRepo repositories.CountryRepo
+	otpRepo     repositories.OtpRepository
 }
 
 type UserService struct {
@@ -26,6 +29,7 @@ func NewUserService(db *sql.DB) *UserService {
 		repo: userServiceRepo{
 			userRepo:    *repositories.NewUserRepository(db),
 			countryRepo: *repositories.NewCountryRespository(db),
+			otpRepo:     *repositories.NewOtpRespository(db),
 		},
 	}
 }
@@ -75,7 +79,6 @@ func (s *UserService) RegisterUser(req *body.RegistrationBody) error {
 }
 
 func (s *UserService) SendOtpMsg(body *body.RegistrationBody) (string, error) {
-
 	connStr := os.Getenv("PG_CONNSTR")
 
 	waService, err := NewWhatsAppService(connStr)
@@ -84,12 +87,30 @@ func (s *UserService) SendOtpMsg(body *body.RegistrationBody) (string, error) {
 	}
 
 	phoneNumber := fmt.Sprintf("%s%s", body.PhoneCode, body.MobilieNumber)
+
 	companyName := os.Getenv("COMPANY_NAME")
 	companyEmail := os.Getenv("COMPANY_EMAIL")
+
 	otpService := NewOTPService(6)
 	sixDigitOtp, err := otpService.GenerateOTP()
 	if err != nil {
 		return "", nil
+	}
+
+	otpCode, err := strconv.Atoi(sixDigitOtp)
+	if err != nil {
+		return "", err
+	}
+
+	// storing generated otp inside otp model
+	otpModel := models.Otp{
+		OtpNumber: otpCode,
+		ExpireAt:  time.Now().Add(10 * time.Minute),
+	}
+
+	_, err = s.repo.otpRepo.New(&otpModel)
+	if err != nil {
+		return "", err
 	}
 
 	message := fmt.Sprintf(`Dear %s %s,
@@ -105,6 +126,10 @@ Thank you,
 	if err := waService.SendMessage(phoneNumber, message); err != nil {
 		return "", err
 	}
+
+	// if err := waService.SendOtpButtonMessage(phoneNumber, "2FA Authentication", message, "", "COPY OTP", sixDigitOtp); err != nil {
+	// 	return "", err
+	// }
 
 	maskedNumber := MaskPhoneNumber(body.MobilieNumber)
 	maskedPhoneNum := fmt.Sprintf("+%s-%s", body.PhoneCode, maskedNumber)
