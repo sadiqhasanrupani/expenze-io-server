@@ -22,7 +22,13 @@ func (repo *OtpRepository) CreateOtpTable() error {
 	createOtpQuery := pkg.CreateTableQuery("otps", `
     id SERIAL PRIMARY KEY NOT NULL,
     otp_number INTEGER UNIQUE NOT NULL,
-    expire_at TIMESTAMP NOT NULL, 
+    email_validity BOOLEAN NOT NULL,
+    mobile_validity BOOLEAN NOT NULL,
+    expire_at TIMESTAMP NOT NULL,
+    user_id INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+      ON DELETE CASCADE
+      ON UPDATE CASCADE,
   `)
 
 	_, err := repo.db.Exec(createOtpQuery)
@@ -39,9 +45,12 @@ func (repo *OtpRepository) New(otp *models.Otp) (*int64, error) {
 	query := `
   INSERT INTO otps (
     otp_number,
-    expire_at
-  ) VALUES ($1, $2)
-  RETURNING id 
+    expire_at,
+    email_validity,
+    mobile_validity,
+    user_id
+  ) VALUES ($1, $2, $3, $4, $5)
+  RETURNING id
   `
 
 	stmt, err := repo.db.Prepare(query)
@@ -51,7 +60,13 @@ func (repo *OtpRepository) New(otp *models.Otp) (*int64, error) {
 	}
 
 	var id int64
-	err = stmt.QueryRow(otp.OtpNumber, otp.ExpireAt).Scan(&id)
+	err = stmt.QueryRow(
+		otp.OtpNumber,
+		otp.ExpireAt,
+		otp.EmailValidity,
+		otp.MobileValidity,
+		otp.UserId,
+	).Scan(&id)
 
 	if err != nil {
 		return nil, err

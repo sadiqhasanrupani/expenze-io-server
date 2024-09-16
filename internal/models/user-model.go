@@ -12,7 +12,6 @@ type User struct {
 	PhoneCode    string    `json:"phonecode"`
 	CountryId    int       `json:"country_id"`
 	Password     string    `json:"password"`
-	Validity     bool      `json:"validity"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdateAt     time.Time `json:"updated_at"`
 }

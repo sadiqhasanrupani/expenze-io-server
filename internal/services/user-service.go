@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"time"
@@ -34,28 +35,28 @@ func NewUserService(db *sql.DB) *UserService {
 	}
 }
 
-func (s *UserService) RegisterUser(req *body.RegistrationBody) error {
+func (s *UserService) RegisterUser(req *body.RegistrationBody) (*int64, error) {
 	existingUser, _ := s.repo.userRepo.FindByEmail(req.EmailID)
 
 	if existingUser != nil {
-		return errors.New("User already exists with this email")
+		return nil, errors.New("User already exists with this email")
 	}
 
 	if existingUser, _ := s.repo.userRepo.FindByMobileNum(req.MobilieNumber); existingUser != nil {
-		return errors.New("User already exists with this mobilie number")
+		return nil, errors.New("User already exists with this mobilie number")
 	}
 
 	// Hashing the password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Find country id using given phone code
 	country, err := s.repo.countryRepo.FindByPhoneCode(req.PhoneCode)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Creating a user
@@ -67,18 +68,20 @@ func (s *UserService) RegisterUser(req *body.RegistrationBody) error {
 		MobileNumber: req.MobilieNumber,
 		PhoneCode:    req.PhoneCode,
 		CountryId:    country.ID,
-		Validity:     false,
 	}
 
 	// Save the user in the database
-	if err := s.repo.userRepo.Save(newUser); err != nil {
-		return err
+	userid, err := s.repo.userRepo.Save(newUser)
+
+	if err != nil {
+		log.Fatalln("user save error: ", err.Error())
+		return nil, err
 	}
 
-	return nil
+	return userid, nil
 }
 
-func (s *UserService) SendOtpMsg(body *body.RegistrationBody) (string, error) {
+func (s *UserService) SendOtpMsg(body *body.RegistrationBody, userId int64) (string, error) {
 	connStr := os.Getenv("PG_CONNSTR")
 
 	waService, err := NewWhatsAppService(connStr)
@@ -103,12 +106,15 @@ func (s *UserService) SendOtpMsg(body *body.RegistrationBody) (string, error) {
 	}
 
 	// storing generated otp inside otp model
-	otpModel := models.Otp{
-		OtpNumber: otpCode,
-		ExpireAt:  time.Now().Add(10 * time.Minute),
+	newOtp := models.Otp{
+		OtpNumber:      otpCode,
+		ExpireAt:       time.Now().Add(10 * time.Minute),
+		EmailValidity:  false,
+		MobileValidity: false,
+		UserId:         userId,
 	}
 
-	_, err = s.repo.otpRepo.New(&otpModel)
+	_, err = s.repo.otpRepo.New(&newOtp)
 	if err != nil {
 		return "", err
 	}
@@ -126,10 +132,6 @@ Thank you,
 	if err := waService.SendMessage(phoneNumber, message); err != nil {
 		return "", err
 	}
-
-	// if err := waService.SendOtpButtonMessage(phoneNumber, "2FA Authentication", message, "", "COPY OTP", sixDigitOtp); err != nil {
-	// 	return "", err
-	// }
 
 	maskedNumber := MaskPhoneNumber(body.MobilieNumber)
 	maskedPhoneNum := fmt.Sprintf("+%s-%s", body.PhoneCode, maskedNumber)

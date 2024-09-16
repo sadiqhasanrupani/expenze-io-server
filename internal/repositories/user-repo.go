@@ -25,7 +25,6 @@ func (repo *UserRepository) CreateUserTable() error {
       mobile_number VARCHAR(50) UNIQUE NOT NULL,
       email_id VARCHAR(150) UNIQUE NOT NULL,
       password VARCHAR(255) NOT NULL,
-      validity BOOLEAN NOT NULL,
       country_id INTEGER NOT NULL,
       FOREIGN KEY (country_id) REFERENCES countries(id)
         ON DELETE CASCADE
@@ -90,22 +89,35 @@ func (repo *UserRepository) FindByMobileNum(phonenumber string) (*models.MobileU
 }
 
 // Save User
-func (repo *UserRepository) Save(user *models.User) error {
+func (repo *UserRepository) Save(user *models.User) (*int64, error) {
 	query := `INSERT INTO users (
     first_name,
     last_name,
     email_id,
     mobile_number,
     password,
-    country_id,
-    validity
-  ) VALUES ($1, $2, $3, $4, $5, $6, $7)`
+    country_id
+  ) VALUES ($1, $2, $3, $4, $5, $6)
+  RETURNING id`
 
-	_, err := repo.db.Exec(query, user.FirstName, user.LastName, user.EmailId, user.MobileNumber, user.Password, user.CountryId, user.Validity)
-
+	stmt, err := repo.db.Prepare(query)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	var id int64
+	err = stmt.QueryRow(
+		user.FirstName,
+		user.LastName,
+		user.EmailId,
+		user.MobileNumber,
+		user.Password,
+		user.CountryId,
+	).Scan(&id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &id, nil
 }

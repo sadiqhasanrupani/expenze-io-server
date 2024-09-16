@@ -40,12 +40,13 @@ func (uc *AuthController) Register(c *gin.Context) {
 	}
 
 	// Call service to register user
-	if err := uc.UserService.RegisterUser(&userReq); err != nil {
+	userId, err := uc.UserService.RegisterUser(&userReq)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Registration failed", "error": err.Error()})
 		return
 	}
 
-	responseMsg, err := uc.UserService.SendOtpMsg(&userReq)
+	responseMsg, err := uc.UserService.SendOtpMsg(&userReq, *userId)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Unable to get send the otp", "error": err.Error()})
