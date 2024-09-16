@@ -1,4 +1,4 @@
-package pkg 
+package validations
 
 type ValidateError struct {
 	Key   string `json:"key"`

@@ -22,7 +22,7 @@ type WhatsAppService struct {
 
 func NewWhatsAppService(connStr string) (*WhatsAppService, error) {
 
-	dbLog := waLog.Stdout("Database", "", true)
+	dbLog := waLog.Stdout("Database", "INFO", true)
 	container, err := sqlstore.New("postgres", connStr, dbLog)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create store: %w", err)
@@ -33,7 +33,7 @@ func NewWhatsAppService(connStr string) (*WhatsAppService, error) {
 		return nil, fmt.Errorf("failed to get device: %w", err)
 	}
 
-	clientLog := waLog.Stdout("Client", "", true)
+	clientLog := waLog.Stdout("Client", "INFO", true)
 	client := whatsmeow.NewClient(deviceStore, clientLog)
 
 	if client.Store.ID == nil {
@@ -140,7 +140,7 @@ func (s *WhatsAppService) SendOtpButtonMessage(phoneNumber, title, content, foot
 		return fmt.Errorf("failed to send message: %w", err)
 	}
 
-	fmt.Println("Message sent to", phoneNumber, " JID: ", recipientJID)
+	fmt.Println("Message sent to", phoneNumber)
 	return nil
 }
 
@@ -161,6 +161,6 @@ func (s *WhatsAppService) SendMessage(phoneNumber, content string) error {
 		return fmt.Errorf("failed to send message: %w", err)
 	}
 
-	fmt.Println("Message sent to", phoneNumber, " JID: ", recipientJID)
+	fmt.Println("Message sent to", phoneNumber)
 	return nil
 }

@@ -1,4 +1,4 @@
-package pkg 
+package pkg
 
 import (
 	"fmt"
@@ -13,3 +13,4 @@ func CreateTableQuery(tableName, tableDefinition string) string {
         )
     `, tableName, tableDefinition)
 }
+

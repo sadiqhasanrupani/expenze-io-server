@@ -1,9 +1,52 @@
-package pkg
+package validations
 
 import (
 	"fmt"
 	"regexp"
+
+	"expenze-io.com/internal/body"
+	"github.com/nyaruka/phonenumbers"
 )
+
+type ValidateRegister struct {
+	body *body.RegistrationBody
+}
+
+// constructor
+func New(registrationBody *body.RegistrationBody) *ValidateRegister {
+	return &ValidateRegister{
+		body: registrationBody,
+	}
+}
+
+// validate phonenumber
+func validatePhonenumber(mobilenumber, phonecode string) *ValidateError {
+	phonenumber := fmt.Sprintf("+%s%s", phonecode, mobilenumber)
+
+	// Parse the phone number with the country code
+	parsedNumber, err := phonenumbers.Parse(phonenumber, "")
+	if err != nil {
+		error := fmt.Sprintf("Error parsing phone number: %v", err)
+
+		return &ValidateError{
+			Key:   "mobilenumber",
+			Error: error,
+			Value: mobilenumber,
+		}
+	}
+
+	isValid := phonenumbers.IsValidNumber(parsedNumber)
+
+	if !isValid {
+		return &ValidateError{
+			Key:   "mobilenumber",
+			Error: "Mobile number is invalid",
+			Value: mobilenumber,
+		}
+	}
+
+	return nil
+}
 
 func MinMaxValidation(field MinMaxValidationFields) *ValidateError {
 	if field.Min == nil {
@@ -25,7 +68,6 @@ func MinMaxValidation(field MinMaxValidationFields) *ValidateError {
 		defaultMax := 0
 		field.Max = &defaultMax
 	}
-
 
 	if *field.Max > 0 {
 		if length > *field.Max {
@@ -106,6 +148,44 @@ func ValidateEmail(email string) *ValidateError {
 			Error: "Email should be valid",
 			Value: email,
 		}
+	}
+
+	return nil
+}
+
+// validate registration body
+func (v *ValidateRegister) ValidateRegistration() *ValidateError {
+	// Validate password
+	if err := ValidatePassword(v.body.Password); err != nil {
+		return err
+	}
+
+	// Validate email
+	if err := ValidateEmail(v.body.EmailID); err != nil {
+		return err
+	}
+
+	// Validate firstname
+	if err := MinMaxValidation(MinMaxValidationFields{
+		Min:        IntPtr(4),
+		FieldName:  "firstname",
+		FieldValue: v.body.Firstname,
+	}); err != nil {
+		return err
+	}
+
+	// Validate lastname
+	if err := MinMaxValidation(MinMaxValidationFields{
+		Min:        IntPtr(3),
+		FieldName:  "lastname",
+		FieldValue: v.body.Lastname,
+	}); err != nil {
+		return err
+	}
+
+	// validate mobile number
+	if err := validatePhonenumber(v.body.MobilieNumber, v.body.PhoneCode); err != nil {
+		return err
 	}
 
 	return nil

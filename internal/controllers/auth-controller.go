@@ -7,7 +7,7 @@ import (
 
 	"expenze-io.com/internal/body"
 	"expenze-io.com/internal/services"
-	"expenze-io.com/pkg"
+	"expenze-io.com/internal/validations"
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,35 +29,13 @@ func (uc *AuthController) Register(c *gin.Context) {
 		return
 	}
 
-	// Validate password
-	if err := pkg.ValidatePassword(userReq.Password); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
-		return
-	}
-
-	// Validate email
-	if err := pkg.ValidateEmail(userReq.EmailID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
-		return
-	}
-
-	// Validate firstname
-	if err := pkg.MinMaxValidation(pkg.MinMaxValidationFields{
-		Min:        pkg.IntPtr(4),
-		FieldName:  "firstname",
-		FieldValue: userReq.Firstname,
-	}); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
-		return
-	}
-
-	// Validate lastname
-	if err := pkg.MinMaxValidation(pkg.MinMaxValidationFields{
-		Min:        pkg.IntPtr(3),
-		FieldName:  "lastname",
-		FieldValue: userReq.Lastname,
-	}); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+	// validation
+	registerValdiation := validations.New(&userReq)
+	if err := registerValdiation.ValidateRegistration(); err != nil {
+		c.JSON(422, gin.H{
+			"message": err.Error,
+			"error":   err,
+		})
 		return
 	}
 
@@ -71,6 +49,7 @@ func (uc *AuthController) Register(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Unable to get send the otp", "error": err.Error()})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": responseMsg})
