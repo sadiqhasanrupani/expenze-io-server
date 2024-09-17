@@ -28,8 +28,6 @@ go mod tidy
 	```env
 	PG_CONNSTR = "postgres://username:password@hostname:port/expenze-io?sslmode=disable"
 
-	PG_CONNSTR = "postgres://postgres:newpassword@localhost:5432/expenze-io?sslmode=disable"
-
 	COMPANY_NAME = "company_name"
 	COMPANY_EMAIL = "company_email"
 	
