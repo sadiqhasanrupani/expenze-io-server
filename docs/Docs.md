@@ -22,12 +22,21 @@ go mod tidy
 ### Configure .env file
 1. Create a `.env` file in your repository by going to the directory by `cd expenzeIo-server` and then write this command to create `.env` file
 	```bash
-		touch .env
+	touch .env
 	```
 2. then paste the PostgreSQL Conn string
 	```env
 	PG_CONNSTR = "postgres://username:password@hostname:port/expenze-io?sslmode=disable"
+
+	PG_CONNSTR = "postgres://postgres:newpassword@localhost:5432/expenze-io?sslmode=disable"
+
+	COMPANY_NAME = "company_name"
+	COMPANY_EMAIL = "company_email"
+	
+	APP_PASS = "app_password"
+	SMTP_EMAIL = "smtp email service"	
 	```
+
 
 ### To methods to run the project
 

@@ -8,7 +8,7 @@ import (
 )
 
 func authRoute(router *gin.Engine) {
-	userService := services.NewUserService(config.DB)
+	userService := services.New(config.DB)
 	authController := controllers.NewAuthController(*userService)
 
 	authRoutes := router.Group(BaseUrl + "/auth")

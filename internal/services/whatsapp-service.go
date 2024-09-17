@@ -137,11 +137,12 @@ func (s *WhatsAppService) SendOtpButtonMessage(phoneNumber, title, content, foot
 	return nil
 }
 
-func (s *WhatsAppService) SendMessage(phoneNumber, content string) error {
+func (s *WhatsAppService) SendMessage(phoneNumber, content string, doneChan chan bool, errorChan chan error) {
 	// Parse recipient JID
 	recipientJID, err := types.ParseJID(phoneNumber + "@s.whatsapp.net")
 	if err != nil {
-		return fmt.Errorf("invalid phone number: %w", err)
+		errorChan <- err
+		return
 	}
 
 	message := &waProto.Message{
@@ -151,9 +152,11 @@ func (s *WhatsAppService) SendMessage(phoneNumber, content string) error {
 	// Send the message
 	_, err = s.Client.SendMessage(context.Background(), recipientJID, message)
 	if err != nil {
-		return fmt.Errorf("failed to send message: %w", err)
+		errorChan <- err
+		return
 	}
 
 	fmt.Println("Message sent to", phoneNumber)
-	return nil
+
+	doneChan <- true
 }

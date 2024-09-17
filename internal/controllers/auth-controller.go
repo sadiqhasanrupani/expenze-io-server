@@ -12,10 +12,10 @@ import (
 )
 
 type AuthController struct {
-	UserService services.UserService
+	UserService services.AuthService
 }
 
-func NewAuthController(userService services.UserService) *AuthController {
+func NewAuthController(userService services.AuthService) *AuthController {
 	return &AuthController{UserService: userService}
 }
 
