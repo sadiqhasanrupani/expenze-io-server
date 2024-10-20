@@ -42,7 +42,7 @@ func SendMailTemplate(sm *SendMail, doneChan chan bool, errorChan chan error) {
 
 	headers := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";"
 
-	msg := fmt.Sprintf("Subject: %v \n %v \n\n %v", sm.Subject, headers, body.String())
+	msg := fmt.Sprintf("Subject: %v \n%v \n\n %v", sm.Subject, headers, body.String())
 
 	// Send the email
 	err = smtp.SendMail(smtpEmail+":587", auth, companyEmail, sm.To, []byte(msg))

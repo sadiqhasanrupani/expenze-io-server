@@ -1,5 +1,3 @@
-// auth controller
-
 package controllers
 
 import (
@@ -12,11 +10,11 @@ import (
 )
 
 type AuthController struct {
-	UserService services.AuthService
+	AuthService services.AuthService
 }
 
-func NewAuthController(userService services.AuthService) *AuthController {
-	return &AuthController{UserService: userService}
+func New(authService services.AuthService) *AuthController {
+	return &AuthController{AuthService: authService}
 }
 
 // Register handles user registration requests
@@ -40,13 +38,13 @@ func (uc *AuthController) Register(c *gin.Context) {
 	}
 
 	// Call service to register user
-	userId, err := uc.UserService.RegisterUser(&userReq)
+	userId, err := uc.AuthService.RegisterUser(&userReq)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Registration failed", "error": err.Error()})
 		return
 	}
 
-	responseMsg, err := uc.UserService.SendOtpMsg(&userReq, *userId)
+	responseMsg, err := uc.AuthService.SendOtpMsg(&userReq, *userId)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Unable to get send the otp", "error": err.Error()})
@@ -54,6 +52,20 @@ func (uc *AuthController) Register(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": responseMsg})
+}
+
+func (ac *AuthController) VerifyOtp(ctx *gin.Context) {
+	var verifyOtpBody *body.VerifyOtpBody
+
+	if err := ctx.ShouldBindJSON(verifyOtpBody); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "Body data is incomplete",
+			"error":   err.Error(),
+		})
+	}
+
+	otpService := services.NewVeriyOtpService(verifyOtpBody)
+	otpService.VerifyOtp()
 }
 
 // Login handles user login requests

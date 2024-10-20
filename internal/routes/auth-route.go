@@ -9,11 +9,12 @@ import (
 
 func authRoute(router *gin.Engine) {
 	userService := services.New(config.DB)
-	authController := controllers.NewAuthController(*userService)
+	authController := controllers.New(*userService)
 
 	authRoutes := router.Group(BaseUrl + "/auth")
 	{
 		authRoutes.POST("/register", authController.Register)
+		authRoutes.POST("/verify-otp", authController.VerifyOtp)
 		authRoutes.POST("/login", authController.Login)
 	}
 }

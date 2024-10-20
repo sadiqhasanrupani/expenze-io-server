@@ -5,16 +5,32 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+
+	"expenze-io.com/internal/body"
 )
 
 type OTPService struct {
 	length int
 }
 
+type VerifyOtpService struct {
+	verifyOtpBody *body.VerifyOtpBody
+}
+
 func NewOTPService(length int) *OTPService {
 	return &OTPService{
 		length: length,
 	}
+}
+
+func NewVeriyOtpService(otpBody *body.VerifyOtpBody) *VerifyOtpService {
+	return &VerifyOtpService{
+		verifyOtpBody: otpBody,
+	}
+}
+
+func (os *VerifyOtpService) VerifyOtp() {
+
 }
 
 func (s *OTPService) GenerateOTP() (string, error) {
@@ -33,4 +49,9 @@ func (s *OTPService) GenerateOTP() (string, error) {
 	}
 
 	return otpBuilder.String(), nil
+}
+
+func (s *OTPService) VerifyOtp(otp string) bool {
+
+	return true
 }

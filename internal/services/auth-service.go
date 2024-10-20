@@ -14,6 +14,7 @@ import (
 	"expenze-io.com/internal/mails"
 	"expenze-io.com/internal/models"
 	"expenze-io.com/internal/repositories"
+	"expenze-io.com/pkg"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -83,41 +84,54 @@ func (as *AuthService) RegisterUser(req *body.RegistrationBody) (*int64, error) 
 	return userid, nil
 }
 
-func (s *AuthService) SendOtpMsg(body *body.RegistrationBody, userId int64) (string, error) {
+func (s *AuthService) SendOtpMsg(body *body.RegistrationBody, userId int64) (*string, error) {
 	connStr := os.Getenv("PG_CONNSTR")
 	companyName := os.Getenv("COMPANY_NAME")
 	companyEmail := os.Getenv("COMPANY_EMAIL")
 
 	waService, err := NewWhatsAppService(connStr)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	phoneNumber := fmt.Sprintf("%s%s", body.PhoneCode, body.MobilieNumber)
 
 	otpService := NewOTPService(6)
-	sixDigitOtp, err := otpService.GenerateOTP()
+
+	mobileSixDigitOtp, err := otpService.GenerateOTP()
 	if err != nil {
-		return "", err
+		return nil, err
+	}
+	emailSixDigitOtp, err := otpService.GenerateOTP()
+	if err != nil {
+		return nil, err
+	}
+	mobileOtpCode, err := strconv.Atoi(mobileSixDigitOtp)
+	if err != nil {
+		return nil, err
+	}
+	emailOtpCode, err := strconv.Atoi(emailSixDigitOtp)
+	if err != nil {
+		return nil, err
 	}
 
-	otpCode, err := strconv.Atoi(sixDigitOtp)
-	if err != nil {
-		return "", err
-	}
+	var token string
+  token = pkg.Base64Encode() 
 
 	// storing generated otp inside otp model
 	newOtp := models.Otp{
-		OtpNumber:      otpCode,
+		MobileOtp:      mobileOtpCode,
+		EmailOtp:       emailOtpCode,
 		ExpireAt:       time.Now().Add(10 * time.Minute),
 		EmailValidity:  false,
 		MobileValidity: false,
 		UserId:         userId,
+		Token:          token,
 	}
 
 	_, err = s.repo.otpRepo.New(&newOtp)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	/*
@@ -137,7 +151,7 @@ func (s *AuthService) SendOtpMsg(body *body.RegistrationBody, userId int64) (str
 
 	rooPath, err := os.Getwd()
 	if err != nil {
-		return "", nil
+		return nil, nil
 	}
 
 	templatePath := filepath.Join(
@@ -153,11 +167,11 @@ func (s *AuthService) SendOtpMsg(body *body.RegistrationBody, userId int64) (str
 	doneChans := make([]chan bool, defaultChanlen)
 	errorChans := make([]chan error, defaultChanlen)
 
-	for i, _ := range doneChans {
+	for i := range doneChans {
 		doneChans[i] = make(chan bool)
 	}
 
-	for i, _ := range errorChans {
+	for i := range errorChans {
 		errorChans[i] = make(chan error)
 	}
 
@@ -166,12 +180,15 @@ func (s *AuthService) SendOtpMsg(body *body.RegistrationBody, userId int64) (str
 		TemplatePath: templatePath,
 		To:           []string{body.EmailID},
 		TemplateData: TemplateData{
-			OtpCode:        sixDigitOtp,
+			OtpCode:        emailSixDigitOtp,
 			CompanyEmail:   companyEmail,
 			ExpirationTime: "10",
 			Fullname:       body.Firstname + " " + body.Lastname,
 		},
-	}, doneChans[0], errorChans[0])
+	},
+		doneChans[0],
+		errorChans[0],
+	)
 
 	/*
 	 ************************************
@@ -186,7 +203,7 @@ For your security, do not share this OTP with anyone.
 
 Thank you,
 %v
-%v`, body.Firstname, body.Lastname, sixDigitOtp, companyName, companyEmail)
+%v`, body.Firstname, body.Lastname, mobileSixDigitOtp, companyName, companyEmail)
 
 	go waService.SendMessage(phoneNumber, message, doneChans[1], errorChans[1])
 
@@ -194,7 +211,7 @@ Thank you,
 		select {
 		case err := <-errorChans[i]:
 			if err != nil {
-				return "", err
+				return nil, err
 			}
 
 		case <-doneChans[i]:
@@ -203,8 +220,14 @@ Thank you,
 
 	}
 
-	maskedNumber := MaskPhoneNumber(body.MobilieNumber)
+	newMaskNumber := NewMaskNumber(&body.MobilieNumber)
+	maskedNumber := newMaskNumber.MaskNumber(2)
+
+	newMaskEmail := NewMaskText(&body.EmailID)
+	maskedEmail := newMaskEmail.MaskEmail()
+
 	maskedPhoneNum := fmt.Sprintf("+%s-%s", body.PhoneCode, maskedNumber)
 
-	return fmt.Sprintf("We have send you a otp on your whatsapp mobile number which last four digit is %s", maskedPhoneNum), nil
+	result := fmt.Sprintf("Sended you a OTP on your phoneNumber %v and on your email %v for 2FA", maskedPhoneNum, maskedEmail)
+	return &result, nil
 }
