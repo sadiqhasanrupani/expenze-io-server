@@ -13,4 +13,3 @@ func CreateTableQuery(tableName, tableDefinition string) string {
         )
     `, tableName, tableDefinition)
 }
-

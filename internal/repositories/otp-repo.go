@@ -109,3 +109,9 @@ func (repo *OtpRepository) FindByUserId(userId int64) (*models.Otp, error) {
 
 	return otpDetails, nil
 }
+
+func (repo *OtpRepository) ApproveMobileOtp(mobileOtp int64, userId int64) error {
+  query := `UPDATE otps SET mobile_validity = true WHERE mobile_otp = $1 AND user_id = $2`
+  _, err := repo.db.Exec(query, mobileOtp, userId)
+  return err
+}

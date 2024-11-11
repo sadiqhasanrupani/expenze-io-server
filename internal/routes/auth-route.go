@@ -2,14 +2,14 @@ package routes
 
 import (
 	"expenze-io.com/internal/config"
-	"expenze-io.com/internal/controllers"
-	"expenze-io.com/internal/services"
+	AuthController "expenze-io.com/internal/controllers"
+	UserService "expenze-io.com/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
 func authRoute(router *gin.Engine) {
-	userService := services.New(config.DB)
-	authController := controllers.New(*userService)
+	userService := UserService.NewUserService(config.DB)
+	authController := AuthController.NewAuthController(*userService)
 
 	authRoutes := router.Group(BaseUrl + "/auth")
 	{

@@ -30,7 +30,9 @@ func NewVeriyOtpService(otpBody *body.VerifyOtpBody) *VerifyOtpService {
 }
 
 func (os *VerifyOtpService) VerifyOtp() {
-
+  if os.verifyOtpBody.MobileOtp != nil {
+        
+  } 
 }
 
 func (s *OTPService) GenerateOTP() (string, error) {

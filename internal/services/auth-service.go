@@ -28,7 +28,7 @@ type AuthService struct {
 	repo authServiceRepo
 }
 
-func New(db *sql.DB) *AuthService {
+func NewUserService(db *sql.DB) *AuthService {
 	return &AuthService{
 		repo: authServiceRepo{
 			userRepo:    *repositories.NewUserRepository(db),
